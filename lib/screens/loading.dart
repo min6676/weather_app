@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:weather_app/data/my_location.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:weather_app/data/network.dart';
+import 'package:weather_app/screens/weather_screen.dart';
+
+const apikey = 'd877e8b71fbbb5f884fc358e51c25eb3';
 
 class Loading extends StatefulWidget {
   const Loading({Key? key}) : super(key: key);
@@ -11,33 +13,29 @@ class Loading extends StatefulWidget {
 }
 
 class _LoadingState extends State<Loading> {
-
-  late double latitude2;
-  late double longitude2;
+  late double latitude3;
+  late double longitude3;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getLocation();
-    fetchData();
   }
 
   void getLocation() async {
     MyLocation myLocation = MyLocation();
     await myLocation.getMyCurrentLocation();
-  }
+    latitude3 = myLocation.latitude2;
+    longitude3 = myLocation.longitude2;
 
-  void fetchData() async {
-    http.Response response = await http.get(
-        'https://samples.openweathermap.org/data/2.5/weather?q=London&appid=b1b15e88fa797225412429c1c50c122a1');
-    if (response.statusCode == 200) {
-      String jsonData = response.body;
-      var myJson = jsonDecode(jsonData)['id'];
-      print(myJson);
-    } else {
-      print(response.statusCode);
-    }
+    Network network = Network(
+        'https://api.openweathermap.org/data/2.5/weather?lat=$latitude3&lon=$longitude3&appid=$apikey&units=metric');
+
+    var weatherData = await network.getJsonData();
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return WeatherScreen(parseWeatherData: weatherData,);
+    }));
   }
 
   @override
